@@ -8,8 +8,7 @@ namespace FilterBladeUpdateHelper
 {
     public class FilterBladeUpdateHelper
     {
-        const string FbDirPath = "C:\\Users\\Tobnac\\WebstormProjects\fb";
-        public static string NewVersion { get; set; }
+        public const string FbDirPath = "C:\\Users\\Tobnac\\WebstormProjects\fb";
 
         public VersionController VersionController { get; set; } = new VersionController();
         public FilterFileUpdater FilterFileUpdater { get; set; } = new FilterFileUpdater();
@@ -19,12 +18,13 @@ namespace FilterBladeUpdateHelper
 
         public FilterBladeUpdateHelper()
         {
+            this.VerifyDirectory();
             this.RunAll();
         }
 
         private void RunAll()
         {
-            // get new version
+            // get current version + target version with user input
             this.VersionController.Run();
 
             // check for new filter files
@@ -46,6 +46,12 @@ namespace FilterBladeUpdateHelper
 
             // start minimizer
             this.MinimizerHandler.Run();
+        }
+
+        private void VerifyDirectory()
+        {
+            // if the given dictionary does not exist -> exit with Exception
+            throw new NotImplementedException();
         }
     }
 }

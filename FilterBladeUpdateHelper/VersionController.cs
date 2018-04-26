@@ -16,7 +16,21 @@ namespace FilterBladeUpdateHelper
     /// </summary>
     public class VersionController
     {
+        public static string NewVersion { get; private set; }
+        public static string OldVersion { get; private set; }
+
         public void Run()
+        {
+            OldVersion = this.FindCurrentVersion();
+            NewVersion = this.EvaluateUserInput(Console.ReadLine());
+        }
+
+        private string EvaluateUserInput(string v)
+        {
+            throw new NotImplementedException();
+        }
+
+        private string FindCurrentVersion()
         {
             throw new NotImplementedException();
         }

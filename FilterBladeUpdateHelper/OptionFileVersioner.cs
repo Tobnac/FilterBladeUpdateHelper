@@ -16,7 +16,7 @@ namespace FilterBladeUpdateHelper
             throw new NotImplementedException();
         }
 
-        public void UpdateFilterData()
+        public void UpdateFilterData(string newVersion)
         {
             throw new NotImplementedException();
         }
