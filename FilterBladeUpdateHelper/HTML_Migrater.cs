@@ -7,9 +7,10 @@ using System.Threading.Tasks;
 namespace FilterBladeUpdateHelper
 {
     /// <summary>
-    /// mainly used to edit the cachebuster version in FilterBlade.js
+    /// merges the new dev HTML file into the release file
+    /// updates manual cachebuster versions for file imports
     /// </summary>
-    public class JS_FileUpdater
+    public class HTML_Migrater
     {
         public void Run()
         {

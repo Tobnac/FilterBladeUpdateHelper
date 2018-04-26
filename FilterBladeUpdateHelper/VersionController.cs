@@ -16,5 +16,9 @@ namespace FilterBladeUpdateHelper
     /// </summary>
     public class VersionController
     {
+        public void Run()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

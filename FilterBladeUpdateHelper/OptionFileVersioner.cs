@@ -11,5 +11,14 @@ namespace FilterBladeUpdateHelper
     /// </summary>
     public class OptionFileVersioner
     {
+        public void UpdateCustomizerVersion()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateFilterData()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

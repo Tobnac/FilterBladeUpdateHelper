@@ -44,7 +44,9 @@
   <ItemGroup>
     <Compile Include="FilterBladeUpdateHelper.cs" />
     <Compile Include="FilterFileUpdater.cs" />
+    <Compile Include="HTML_Migrater.cs" />
     <Compile Include="JS_FileUpdater.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="MinimizerHandler.cs" />
     <Compile Include="OptionFileVersioner.cs" />
     <Compile Include="Program.cs" />

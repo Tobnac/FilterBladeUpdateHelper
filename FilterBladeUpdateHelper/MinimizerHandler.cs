@@ -11,5 +11,9 @@ namespace FilterBladeUpdateHelper
     /// </summary>
     public class MinimizerHandler
     {
+        public void Run()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -15,5 +15,27 @@ namespace FilterBladeUpdateHelper
     public class FilterFileUpdater
     {
         public OptionFileVersioner OptionFileVersioner { get; set; } = new OptionFileVersioner();
+
+        public void Run()
+        {
+            if (this.FindNewFilterFiles())
+            {
+                Logger.Log("New filter files found", 0);
+                this.InsertNewFilterFiles();
+                this.OptionFileVersioner.UpdateFilterData();
+            }
+
+            Logger.Log("No new filter files found", 0);
+        }
+
+        private void InsertNewFilterFiles()
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool FindNewFilterFiles()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
