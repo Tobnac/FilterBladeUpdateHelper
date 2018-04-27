@@ -34,7 +34,7 @@ namespace FilterBladeUpdateHelper
 
             var process = Process.Start(processInfo);
            
-            process.OutputDataReceived += (object sender, DataReceivedEventArgs e) => Logger.Log(e.Data, 0);
+            process.OutputDataReceived += (object sender, DataReceivedEventArgs e) => Logger.Log(e.Data, 1);
             process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) => { if (e.Data != null) throw new Exception(e.Data); };
 
             Logger.Log("Minimizer Starting:", 0);

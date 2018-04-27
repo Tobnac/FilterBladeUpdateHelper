@@ -19,10 +19,13 @@ namespace FilterBladeUpdateHelper
         public static string NewVersion { get; private set; }
         public static string OldVersion { get; private set; }
 
-        public void Run()
+        private JS_FileUpdater jS_FileUpdater;
+
+        public void Run(JS_FileUpdater jsFu)
         {
+            this.jS_FileUpdater = jsFu;
             OldVersion = this.FindCurrentVersion();
-            NewVersion = this.EvaluateUserInput();
+            NewVersion = this.EvaluateUserInput();            
         }
 
         private string EvaluateUserInput()
@@ -114,21 +117,7 @@ namespace FilterBladeUpdateHelper
 
         private string FindCurrentVersion()
         {
-            var fbJsPath = FilterBladeUpdateHelper.FbDirPath + "\\js\\FilterBlade.js";
-            var fbJSLines = System.IO.File.ReadAllLines(fbJsPath);
-
-            foreach (var line in fbJSLines)
-            {
-                if (line.Contains("this.aversion"))
-                {
-                    var start = line.Substring(line.IndexOf("\"")+1);
-                    var full = start.Substring(0, start.IndexOf("\""));
-                    Logger.Log("Found current version: " + full, 0);
-                    return full;
-                }
-            }
-
-            throw new Exception();
+            return this.jS_FileUpdater.FindCurrentCacheBusterVersion();
         }
     }
 }

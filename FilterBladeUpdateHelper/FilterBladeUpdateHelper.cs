@@ -18,14 +18,17 @@ namespace FilterBladeUpdateHelper
 
         public FilterBladeUpdateHelper()
         {
+            this.HTML_Migrater = new HTML_Migrater("/indexdev.html", "/index.html");
             this.VerifyDirectory();
             this.RunAll();
+            Console.WriteLine("\n\nFilterBlade successfully updated!");
+            Console.Read();
         }
 
         private void RunAll()
         {
             // get current version + target version with user input
-            this.VersionController.Run();
+            this.VersionController.Run(this.JS_FileUpdater);
 
             // check for new filter files
             // insert new filter files
