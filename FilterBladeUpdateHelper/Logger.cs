@@ -33,7 +33,7 @@ namespace FilterBladeUpdateHelper
         {
             if (importance < LogTolerance) return;
 
-            Console.WriteLine(message);
+            Console.WriteLine("{" + importance + "} " + message);
         }
     }
 }

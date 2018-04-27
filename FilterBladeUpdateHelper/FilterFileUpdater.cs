@@ -15,57 +15,108 @@ namespace FilterBladeUpdateHelper
     public class FilterFileUpdater
     {
         private const string FilterDirPath = FilterBladeUpdateHelper.FbDirPath + "\\datafiles\\filters\\NeverSink";
+        private const string NewFileDic = @"C:\Users\Tobnac\Downloads\RESULTS";
 
         public OptionFileVersioner OptionFileVersioner { get; set; } = new OptionFileVersioner();
-
-        public FilterFileUpdater()
-        {
-        }
 
         public void Run()
         {
             if (this.FindNewFilterFiles())
             {
-                Logger.Log("New filter files found", 0);
+                Logger.Log("New filter files found", 1);
                 this.InsertNewFilterFiles();
                 this.UpdateFilterData();
             }
 
-            Logger.Log("No new filter files found", 0);
+            Logger.Log("No new filter files found", 1);
         }
 
         private void UpdateFilterData()
         {
-            string v = this.GetFilterVersion();
-            this.OptionFileVersioner.UpdateFilterData(v);
+            var newVersion = this.GetFilterVersion(true);
+            var oldVersion = this.GetFilterVersion(false);
+            Logger.Log("New filter version: " + newVersion, 0);
+            Logger.Log("Old filter version: " + oldVersion, 0);
+            if (newVersion == oldVersion) Logger.Log("New and Old filter version is identical", 5);
+            this.OptionFileVersioner.UpdateFilterData(newVersion, oldVersion);
         }
 
-        private string GetFilterVersion()
+        private string GetFilterVersion(bool newFiles)
         {
-            throw new NotImplementedException();
+            string filterPath;
+            if (newFiles) filterPath = NewFileDic + "/NeverSink's filter - 1-REGULAR.filter";
+            else filterPath = FilterDirPath + "/Normal/NeverSink's filter - 1-REGULAR.filter";
+            // # VERSION:		5.73
+
+            var filterLines = System.IO.File.ReadAllLines(filterPath);
+
+            foreach (var line in filterLines)
+            {
+                int index;
+                var ident = "version:";
+                string reLine;
+                if ((index = (reLine = line.ToLower().Replace('\t', ' ')).IndexOf(ident)) != -1)
+                {
+                    var version = reLine.Substring(index + ident.Length).Trim();
+                    return version;
+                }
+            }
+
+            throw new Exception();
         }
 
         private void InsertNewFilterFiles()
         {
-            throw new NotImplementedException();
+            var counter = 0;
 
-            //var strictnessNames = new string[] { "REGULAR", "SEMI-STRICT", "STRICT", "VERY-STRICT", "UBER-STRICT", "UBER-PLUS-STRICT" };
+            foreach (var file in System.IO.Directory.GetFiles(NewFileDic))
+            {
+                // normal style
+                this.MoveFile(file, FilterDirPath + "/Normal");
+                counter++;
+            }
 
-            //for (int i = 0; i < strictnessNames.Length; i++)
-            //{
-            //    this.FilterFileNames.Add("NeverSink's filter - " + i + " - " + strictnessNames[i] + ".filter");
-            //}
+            foreach (var subFolder in System.IO.Directory.GetDirectories(NewFileDic))
+            {
+                var style = this.GetStyleName(subFolder);
 
-            //todo: check if i can just get all files and directories within a dictionary
+                foreach (var file in System.IO.Directory.GetFiles(subFolder))
+                {
+                    this.MoveFile(file, FilterDirPath + "/" + style);
+                    counter++;
+                }
+            }
+
+            Logger.Log("Copied " + counter + " filter files", 0);
+        }
+
+        private string GetStyleName(string subFolder)
+        {
+            var capsLockName = subFolder.Substring(subFolder.IndexOf("(STYLE) ") + "(STYLE) ".Length);
+            var result = "";
+            result += capsLockName[0].ToString().ToUpper();
+            result += capsLockName.Substring(1).ToLower();
+            return result;
+        }
+
+        private void MoveFile(string original, string destination)
+        {
+            var destPath = destination + "/" + original.Split('\\').Last();
+            var a = System.IO.File.Exists(original);
+            var b = System.IO.File.Exists(destPath);
+            if (!a || !b) throw new Exception();
+            
+            System.IO.File.Copy(original, destPath, true);
         }
 
         private bool FindNewFilterFiles()
         {
-            throw new NotImplementedException();
+            var cloneFolders = Enumerable.Range(1, 8).Any(x => System.IO.Directory.Exists(NewFileDic + " (" + x + ")"));
+            var cloneRars = Enumerable.Range(1, 8).Any(x => System.IO.File.Exists(NewFileDic + " (" + x + ").rar"));
 
-            // todo: how to provide the info for this?
-            // -> provide path -> annoying
-            // -> always the same place+name -> dumb because NS sends 4 versions all the time anyway
+            if (cloneFolders || cloneRars) throw new Exception();
+
+            return System.IO.Directory.Exists(NewFileDic);
         }
     }
 }

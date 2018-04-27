@@ -8,7 +8,7 @@ namespace FilterBladeUpdateHelper
 {
     public class FilterBladeUpdateHelper
     {
-        public const string FbDirPath = "C:\\Users\\Tobnac\\WebstormProjects\fb";
+        public const string FbDirPath = @"C:\Users\Tobnac\WebstormProjects\fb";
 
         public VersionController VersionController { get; set; } = new VersionController();
         public FilterFileUpdater FilterFileUpdater { get; set; } = new FilterFileUpdater();
@@ -51,7 +51,8 @@ namespace FilterBladeUpdateHelper
         private void VerifyDirectory()
         {
             // if the given dictionary does not exist -> exit with Exception
-            throw new NotImplementedException();
+            if (!System.IO.Directory.Exists(FbDirPath)) throw new Exception();
+            else Logger.Log("FilterBlade directory found", 0);
         }
     }
 }
