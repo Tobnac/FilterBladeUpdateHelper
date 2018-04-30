@@ -24,8 +24,8 @@ namespace FilterBladeUpdateHelper
             if (this.FindNewFilterFiles())
             {
                 Logger.Log("New filter files found", 1);
-                this.InsertNewFilterFiles();
                 this.UpdateFilterData();
+                this.InsertNewFilterFiles();                
             }
 
             Logger.Log("No new filter files found", 1);
