@@ -16,6 +16,7 @@ namespace FilterBladeUpdateHelper
 
         public void Run()
         {
+            Logger.Log("Minimizer Starting:", 0);
             this.ExecuteCmdCommand(minimizeStartCommand);
         }
 
@@ -36,8 +37,7 @@ namespace FilterBladeUpdateHelper
            
             process.OutputDataReceived += (object sender, DataReceivedEventArgs e) => Logger.Log(e.Data, 1);
             process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) => { if (e.Data != null) throw new Exception(e.Data); };
-
-            Logger.Log("Minimizer Starting:", 0);
+            
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
             process.WaitForExit();
