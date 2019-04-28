@@ -16,7 +16,7 @@ namespace FilterBladeUpdateHelper
 
         public void Run()
         {
-            Logger.Log("Minimizer Starting:", 0);
+            Logger.Log("Minimizer Starting:", 1);
             this.ExecuteCmdCommand(minimizeStartCommand);
         }
 

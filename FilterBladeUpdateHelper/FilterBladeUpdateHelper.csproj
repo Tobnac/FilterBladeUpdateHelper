@@ -50,6 +50,7 @@
     <Compile Include="Logger.cs" />
     <Compile Include="MinimizerHandler.cs" />
     <Compile Include="OptionFileVersioner.cs" />
+    <Compile Include="PresetHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VersionController.cs" />

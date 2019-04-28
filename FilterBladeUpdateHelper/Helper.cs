@@ -37,5 +37,15 @@ namespace FilterBladeUpdateHelper
 
             return string.Format("{0:MMMM} {1}{2}", dt, dt.Day, suffix);
         }
+
+        public static string GetFileNameFromPath(string path)
+        {
+            var index = path.LastIndexOf("/");
+            var otherIndex = path.LastIndexOf("\\");
+            if (otherIndex > index) index = otherIndex;
+            index++;
+
+            return path.Substring(index);
+        }
     }
 }

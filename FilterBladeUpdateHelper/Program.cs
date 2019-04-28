@@ -10,6 +10,8 @@ namespace FilterBladeUpdateHelper
     {
         static void Main(string[] args)
         {
+            //new PresetHandler().Run();
+            //Console.Read();
             new FilterBladeUpdateHelper();
         }
     }

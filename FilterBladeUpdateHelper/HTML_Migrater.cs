@@ -80,7 +80,7 @@ namespace FilterBladeUpdateHelper
                     var newLine = line.Replace(VersionController.OldVersion, VersionController.NewVersion);
 
                     // update date
-                    var oldDateStart = line.Substring(line.IndexOf(key) + key.Length);
+                    var oldDateStart = line.Substring(line.IndexOf(key, StringComparison.Ordinal) + key.Length);
                     var oldDate = oldDateStart.Substring(0, oldDateStart.IndexOf(endKey));
                     var newDate = Helper.GetCurrentDate();
                     newLine = newLine.Replace(oldDate, newDate);
@@ -159,12 +159,21 @@ namespace FilterBladeUpdateHelper
             {
                 var line = lineList[i];
 
-                if (state == 0 && line.Contains(importStartIdent)) state++;
-                else if (state == 1 && line.Contains(importEndIdent)) return;
-                else if (state == 1 && line.Contains(key))
+                switch (state)
                 {
-                    var newLine = line.Replace(key, newKey);
-                    lineList[i] = newLine;
+                    case 0 when line.Contains(importStartIdent):
+                        state++;
+                        break;
+                    case 1 when line.Contains(importEndIdent):
+                        return;
+                    case 1 when line.Contains(key):
+                    {
+                        var newLine = line.Replace(key, newKey);
+                        lineList[i] = newLine;
+                        break;
+                    }
+                    default:
+                        return;
                 }
             }
         }

@@ -21,17 +21,15 @@ namespace FilterBladeUpdateHelper
             for (int i = 0; i < optLines.Length; i++)
             {
                 var line = optLines[i];
-                if (line.Contains("Info_OptionVersion") && line.Contains(VersionController.OldVersion))
-                {
-                    // update version
-                    var newLine = line.Replace(VersionController.OldVersion, VersionController.NewVersion);
-                    Logger.Log("Updated optionFile version", 0);
+                if (!line.Contains("Info_OptionVersion") || !line.Contains(VersionController.OldVersion)) continue;
+                // update version
+                var newLine = line.Replace(VersionController.OldVersion, VersionController.NewVersion);
+                Logger.Log("Updated optionFile version", 0);
 
-                    // overwrite line
-                    optLines[i] = newLine;
-                    found = true;
-                    break;
-                }
+                // overwrite line
+                optLines[i] = newLine;
+                found = true;
+                break;
             }
 
             if (!found) throw new Exception();

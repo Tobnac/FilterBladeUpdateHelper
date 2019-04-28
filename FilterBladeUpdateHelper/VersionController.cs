@@ -68,7 +68,7 @@ namespace FilterBladeUpdateHelper
                     result = input.Substring(2);
                     break;
             }
-
+            
             Console.WriteLine("Target version was set to: \"" + result + "\". Press <Enter> to confirm.");
             Console.ReadLine();
             return result;
@@ -78,7 +78,7 @@ namespace FilterBladeUpdateHelper
         {
             var index = this.FindFirstLetter(oldVersion);
 
-            if (index == -1) return oldVersion.Substring(0, index) + "a";
+            if (index == -1) return oldVersion + "a";
 
             var letter = oldVersion.Substring(index);
 

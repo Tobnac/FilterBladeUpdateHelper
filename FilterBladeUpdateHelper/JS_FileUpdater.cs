@@ -31,14 +31,12 @@ namespace FilterBladeUpdateHelper
             for (int i = 0; i < this.FB_JS_Lines.Length; i++)
             {
                 var line = this.FB_JS_Lines[i];
-                if (line.Contains("this.aversion") && line.Contains(VersionController.OldVersion))
-                {
-                    var newLine = line.Replace(VersionController.OldVersion, VersionController.NewVersion);
-                    this.FB_JS_Lines[i] = newLine;
-                    Logger.Log("Update cachebuster version", 0);
-                    found = true;
-                    break;
-                }
+                if (!line.Contains("this.aversion") || !line.Contains(VersionController.OldVersion)) continue;
+                var newLine = line.Replace(VersionController.OldVersion, VersionController.NewVersion);
+                this.FB_JS_Lines[i] = newLine;
+                Logger.Log("Update cachebuster version", 0);
+                found = true;
+                break;
             }
 
             if (!found) throw new Exception();
