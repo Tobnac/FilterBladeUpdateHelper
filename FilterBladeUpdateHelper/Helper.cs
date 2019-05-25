@@ -18,30 +18,29 @@ namespace FilterBladeUpdateHelper
             {
                 suffix = "th";
             }
-            else if (dt.Day % 10 == 1)
+            else switch (dt.Day % 10)
             {
-                suffix = "st";
-            }
-            else if (dt.Day % 10 == 2)
-            {
-                suffix = "nd";
-            }
-            else if (dt.Day % 10 == 3)
-            {
-                suffix = "rd";
-            }
-            else
-            {
-                suffix = "th";
+                case 1:
+                    suffix = "st";
+                    break;
+                case 2:
+                    suffix = "nd";
+                    break;
+                case 3:
+                    suffix = "rd";
+                    break;
+                default:
+                    suffix = "th";
+                    break;
             }
 
-            return string.Format("{0:MMMM} {1}{2}", dt, dt.Day, suffix);
+            return $"{dt:MMMM} {dt.Day}{suffix}";
         }
 
         public static string GetFileNameFromPath(string path)
         {
-            var index = path.LastIndexOf("/");
-            var otherIndex = path.LastIndexOf("\\");
+            var index = path.LastIndexOf("/", StringComparison.Ordinal);
+            var otherIndex = path.LastIndexOf("\\", StringComparison.Ordinal);
             if (otherIndex > index) index = otherIndex;
             index++;
 

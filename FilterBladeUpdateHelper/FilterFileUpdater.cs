@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SharpCompress.Archives.Rar;
+using SharpCompress.Common;
+using SharpCompress.Readers;
 
 namespace FilterBladeUpdateHelper
 {
@@ -15,20 +19,20 @@ namespace FilterBladeUpdateHelper
     public class FilterFileUpdater
     {
         private const string FilterDirPath = FilterBladeUpdateHelper.FbDirPath + "\\datafiles\\filters\\NeverSink";
-        private const string NewFileDic = @"C:\Users\Tobnac\Downloads\RESULTS";
-
-        public OptionFileVersioner OptionFileVersioner { get; set; } = new OptionFileVersioner();
+        private static readonly string[] NewFilterArchiveNames = { "RESULTS", "Filter" };
+        public static string NewFilterFolderPath { get; private set; } = FilterBladeUpdateHelper.NewFilterArchiveFolderPath + "FB_UpdateHelper_UnpackedFilters";
 
         public void Run()
         {
-            if (this.FindNewFilterFiles())
+            if (!this.DoNewFilterFilesExist())
             {
-                Logger.Log("New filter files found", 1);
-                this.UpdateFilterData();
-                this.InsertNewFilterFiles();                
+                Logger.Log("No new filter files found", 1);
+                return;                
             }
-
-            Logger.Log("No new filter files found", 1);
+            
+            Logger.Log("New filter files found", 1);
+            this.UpdateFilterData();
+            this.InsertNewFilterFiles();
         }
 
         private void UpdateFilterData()
@@ -38,31 +42,30 @@ namespace FilterBladeUpdateHelper
             Logger.Log("New filter version: " + newVersion, 0);
             Logger.Log("Old filter version: " + oldVersion, 0);
             if (newVersion == oldVersion) Logger.Log("New and Old filter version is identical", 5);
-            this.OptionFileVersioner.UpdateFilterData(newVersion, oldVersion);
+            else Logger.Log("Updating filter version from " + oldVersion + " to " + newVersion, 5);
+            OptionFileVersioner.UpdateFilterData(newVersion, oldVersion);
         }
 
         private string GetFilterVersion(bool newFiles)
         {
             string filterPath;
-            if (newFiles) filterPath = NewFileDic + "/NeverSink's filter - 1-REGULAR.filter";
+            if (newFiles) filterPath = NewFilterFolderPath + "/NeverSink's filter - 1-REGULAR.filter";
             else filterPath = FilterDirPath + "/Normal/NeverSink's filter - 1-REGULAR.filter";
             // # VERSION:		5.73
+            
+            if (!File.Exists(filterPath)) throw new Exception("filter file not found: " + filterPath);
 
-            var filterLines = System.IO.File.ReadAllLines(filterPath);
+            const string key = "version:";
+            var filterLines = File.ReadAllLines(filterPath)
+                .Select(x => x.ToLower())
+                .FirstOrDefault(x => x.Contains(key));
+            
+            if (filterLines == null) throw new Exception("unable to find version in filter file");
 
-            foreach (var line in filterLines)
-            {
-                int index;
-                var ident = "version:";
-                string reLine;
-                if ((index = (reLine = line.ToLower().Replace('\t', ' ')).IndexOf(ident)) != -1)
-                {
-                    var version = reLine.Substring(index + ident.Length).Trim();
-                    return version;
-                }
-            }
-
-            throw new Exception();
+            var index = filterLines.IndexOf(key, StringComparison.Ordinal);
+            var version = filterLines.Substring(index + key.Length);
+            version = version.Replace('\t', ' ').Trim();
+            return version;
         }
 
         private void InsertNewFilterFiles()
@@ -70,18 +73,18 @@ namespace FilterBladeUpdateHelper
             var counter = 0;
 
             // normal style
-            foreach (var file in System.IO.Directory.GetFiles(NewFileDic))
+            foreach (var file in Directory.GetFiles(NewFilterFolderPath))
             {                
                 this.MoveFile(file, FilterDirPath + "/Normal");
                 counter++;
             }
 
             // all styles
-            foreach (var subFolder in System.IO.Directory.GetDirectories(NewFileDic))
+            foreach (var subFolder in Directory.GetDirectories(NewFilterFolderPath))
             {
                 var style = this.GetStyleName(subFolder);
 
-                foreach (var file in System.IO.Directory.GetFiles(subFolder))
+                foreach (var file in Directory.GetFiles(subFolder))
                 {
                     // skip sound placeholder files
                     if (file.Contains(".mp3")) continue;
@@ -91,12 +94,12 @@ namespace FilterBladeUpdateHelper
                 }
             }
 
-            Logger.Log("Copied " + counter + " filter files", 0);
+            Logger.Log("Copied " + counter + " filter files", 2);
         }
 
         private string GetStyleName(string subFolder)
         {
-            var capsLockName = subFolder.Substring(subFolder.IndexOf("(STYLE) ") + "(STYLE) ".Length);
+            var capsLockName = subFolder.Substring(subFolder.IndexOf("(STYLE) ", StringComparison.Ordinal) + "(STYLE) ".Length);
             var result = "";
             result += capsLockName[0].ToString().ToUpper();
             result += capsLockName.Substring(1).ToLower();
@@ -105,26 +108,70 @@ namespace FilterBladeUpdateHelper
 
         private void MoveFile(string original, string destination)
         {
-            var destPath = destination + "/" + original.Split('\\').Last();
-            var a = System.IO.File.Exists(original);
-            var b = System.IO.File.Exists(destPath);
+            destination += "/" + Helper.GetFileNameFromPath(original);
+            var a = File.Exists(original);
+            var b = File.Exists(destination);
             if (!a || !b) throw new Exception();
-            
-            System.IO.File.Copy(original, destPath, true);
+            File.Copy(original, destination, true);
         }
 
-        private bool FindNewFilterFiles()
+        private bool DoNewFilterFilesExist()
         {
-            var cloneFolders = Enumerable.Range(1, 8).Any(x => System.IO.Directory.Exists(NewFileDic + " (" + x + ")"));
-            var cloneRars = Enumerable.Range(1, 8).Any(x => System.IO.File.Exists(NewFileDic + " (" + x + ").rar"));
+            var archiveFiles = Directory.EnumerateFiles(FilterBladeUpdateHelper.NewFilterArchiveFolderPath)
+                .Where(IsFilterArchive)
+                .OrderByDescending(File.GetCreationTime)
+                .ToList();
 
-            if (cloneFolders || cloneRars)
+            if (archiveFiles.Count == 0) return false;
+            
+            Console.WriteLine(archiveFiles.Count + " possible new filter archives found");
+            
+            foreach (var archiveFile in archiveFiles)
             {
-                while (Console.ReadLine() != "exit") Console.WriteLine("Error: There is more than one rar/folder present. Please delete any duplicates and restart.");
-                throw new Exception("there are duplicate filter folders");
+                var archiveName = Helper.GetFileNameFromPath(archiveFile);
+                Console.WriteLine("Filter Archive found: " + archiveName + ". Created on: " + File.GetCreationTime(archiveFile));
+                Console.WriteLine("Use this one? Press <Enter> to confirm, write anything to select next archive.");
+                if (Console.ReadLine() != "") continue;
+
+                while (Directory.Exists(NewFilterFolderPath))
+                {
+                    NewFilterFolderPath += "_";
+                }
+                
+                if (!Directory.Exists(NewFilterFolderPath)) Directory.CreateDirectory(NewFilterFolderPath);
+
+                if (archiveFile.EndsWith(".rar"))
+                {
+                    RarArchive.Open(archiveFile).ExtractAllEntries().WriteAllToDirectory(NewFilterFolderPath, new ExtractionOptions(){ExtractFullPath = true});
+                }
+                else if (archiveFile.EndsWith(".zip"))
+                {
+                    System.IO.Compression.ZipFile.ExtractToDirectory(archiveFile, NewFilterFolderPath);
+                }
+                else throw new Exception("unexpected filter archive format/ending");
+                
+                return true;
             }
 
-            return System.IO.Directory.Exists(NewFileDic);
+            Console.WriteLine("All filter archives iterated. Do you want to NOT insert any new filter files? Press <Enter> to confirm.");
+            if (Console.ReadLine() != "") throw new Exception("unexpected filter selection. Cancelling update");
+            return false;
+
+            bool IsFilterArchive(string randomFileName)
+            {
+                randomFileName = Helper.GetFileNameFromPath(randomFileName);
+                randomFileName = randomFileName.ToLower();
+                if (!randomFileName.EndsWith(".rar") && !randomFileName.EndsWith(".zip")) return false;
+                return NewFilterArchiveNames.Any(s => randomFileName.Contains(s.ToLower()));
+            }
+        }
+
+        public static void CleanUpFiles()
+        {
+            if (Directory.Exists(NewFilterFolderPath))
+            {
+                Directory.Delete(NewFilterFolderPath, true);
+            }
         }
     }
 }

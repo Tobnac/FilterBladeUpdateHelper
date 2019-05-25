@@ -9,19 +9,20 @@ namespace FilterBladeUpdateHelper
     /// <summary>
     /// edit optionFile to update version + last update date
     /// </summary>
-    public class OptionFileVersioner
+    public static class OptionFileVersioner
     {
-        private const string optionFilePath = FilterBladeUpdateHelper.FbDirPath + @"/datafiles/optionfiles/optionFile085d.options";
+        private const string OptionFilePath = FilterBladeUpdateHelper.FbDirPath + @"/datafiles/optionfiles/optionFile085d.options";
 
-        public void UpdateCustomizerVersion()
+        public static void UpdateCustomizerVersion()
         {
-            var optLines = System.IO.File.ReadAllLines(optionFilePath);
+            var optLines = System.IO.File.ReadAllLines(OptionFilePath);
             var found = false;
 
-            for (int i = 0; i < optLines.Length; i++)
+            for (var i = 0; i < optLines.Length; i++)
             {
                 var line = optLines[i];
                 if (!line.Contains("Info_OptionVersion") || !line.Contains(VersionController.OldVersion)) continue;
+                
                 // update version
                 var newLine = line.Replace(VersionController.OldVersion, VersionController.NewVersion);
                 Logger.Log("Updated optionFile version", 0);
@@ -32,44 +33,43 @@ namespace FilterBladeUpdateHelper
                 break;
             }
 
-            if (!found) throw new Exception();
+            if (!found) throw new Exception("unable to update version in optionFile");
 
             // overwrite file
-            System.IO.File.WriteAllLines(optionFilePath, optLines);
+            System.IO.File.WriteAllLines(OptionFilePath, optLines);
         }
 
-        public void UpdateFilterData(string newVersion, string oldVersion)
+        public static void UpdateFilterData(string newVersion, string oldVersion)
         {
-            var optLines = System.IO.File.ReadAllLines(optionFilePath);
+            var optLines = System.IO.File.ReadAllLines(OptionFilePath);
             var found = false;
-            var dateKey = "updated on ";
+            const string key = "updated on ";
 
-            for (int i = 0; i < optLines.Length; i++)
+            for (var i = 0; i < optLines.Length; i++)
             {
                 var line = optLines[i];
-                if (line.Contains("Info_FilterDescription") && line.Contains(oldVersion) && line.Contains(dateKey))
-                {
-                    // update version
-                    var newLine = line.Replace(oldVersion, newVersion);
+                if (!line.Contains("Info_FilterDescription") || !line.Contains(oldVersion) || !line.Contains(key)) continue;
+                
+                // update version
+                var newLine = line.Replace(oldVersion, newVersion);
 
-                    // update date
-                    var dateStart = line.Substring(line.IndexOf(dateKey) + dateKey.Length);
-                    var date = dateStart.Substring(0, dateStart.IndexOf('"'));
-                    var newDate = Helper.GetCurrentDate();
-                    newLine = newLine.Replace(date, newDate);
-                    Logger.Log("Updated date from '" + date + "' to '" + newDate + "'.", 1);
+                // update date
+                var dateStart = line.Substring(line.IndexOf(key, StringComparison.Ordinal) + key.Length);
+                var date = dateStart.Substring(0, dateStart.IndexOf('"'));
+                var newDate = Helper.GetCurrentDate();
+                newLine = newLine.Replace(date, newDate);
+                Logger.Log("Updated date from '" + date + "' to '" + newDate + "'.", 1);
 
-                    // overwrite line
-                    optLines[i] = newLine;
-                    found = true;
-                    break;
-                }
+                // overwrite line
+                optLines[i] = newLine;
+                found = true;
+                break;
             }
 
-            if (!found) throw new Exception();
+            if (!found) throw new Exception("unable to update optFile filter data");
 
             // overwrite file
-            System.IO.File.WriteAllLines(optionFilePath, optLines);
+            System.IO.File.WriteAllLines(OptionFilePath, optLines);
         }
     }
 }

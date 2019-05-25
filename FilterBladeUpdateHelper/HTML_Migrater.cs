@@ -8,20 +8,20 @@ namespace FilterBladeUpdateHelper
 {
     /// <summary>
     /// merges the new dev HTML file into the release file
-    /// updates manual cachebuster versions for file imports
+    /// updates manual cacheBuster versions for file imports
     /// </summary>
-    public class HTML_Migrater
+    public class Html_Migrater
     {
         private List<string> releaseImports;
         private readonly string devFilePath;
         private readonly string releaseFilePath;
-        private const string importStartIdent = "<StartImport>";
-        private const string importEndIdent = "<EndImport>";
+        private const string ImportStartIdent = "<StartImport>";
+        private const string ImportEndIdent = "<EndImport>";
 
         private List<string> releaseLines;
         private List<string> devLines;
 
-        public HTML_Migrater(string devPath, string releasePath)
+        public Html_Migrater(string devPath, string releasePath)
         {
             this.devFilePath = FilterBladeUpdateHelper.FbDirPath + devPath;
             this.releaseFilePath = FilterBladeUpdateHelper.FbDirPath + releasePath;
@@ -33,17 +33,14 @@ namespace FilterBladeUpdateHelper
             // -> we will edit those lineLists and later insert them back into their files
             this.ReadFiles();
 
-
             // update date and version in devHTML
-            this.UpdateDateInDevHTML();
+            this.UpdateDateInDevHtml();
 
             // find script-part in releaseHTML an save it
             this.releaseImports = this.GetReleaseImports();
 
-
             // copy devHTML into releaseHTML
             this.MigrateDevIntoRelease();
-
 
             // replace fullImports with releaseImports in releaseHTML
             this.RevertReleaseImports();
@@ -51,7 +48,6 @@ namespace FilterBladeUpdateHelper
             // update cacheBuster version in imports in both files
             this.UpdateImportCachbusting(this.devLines);
             this.UpdateImportCachbusting(this.releaseLines);
-
 
             // insert edited lines back into original files
             this.Apply();
@@ -63,36 +59,49 @@ namespace FilterBladeUpdateHelper
             this.releaseLines = System.IO.File.ReadAllLines(this.releaseFilePath).ToList();
         }
 
-        private void UpdateDateInDevHTML()
+        private void UpdateDateInDevHtml()
         {
-            int state = 0;
+            var state = 0;
             var key = "Version " + VersionController.OldVersion + ",<br>";
-            var endKey = "</label>";
+            const string endKey = "</label>";
 
-            for (int i = 0; i < this.devLines.Count; i++)
+            for (var i = 0; i < this.devLines.Count; i++)
             {
                 var line = this.devLines[i];
-                if (state == 0 && line.Contains(importStartIdent)) state++;
-                else if (state == 1 && line.Contains(importEndIdent)) state++;
-                else if (state == 2 && line.Contains("<label") && line.Contains(key) && line.Contains(endKey))
-                {                
-                    // update version
-                    var newLine = line.Replace(VersionController.OldVersion, VersionController.NewVersion);
 
-                    // update date
-                    var oldDateStart = line.Substring(line.IndexOf(key, StringComparison.Ordinal) + key.Length);
-                    var oldDate = oldDateStart.Substring(0, oldDateStart.IndexOf(endKey));
-                    var newDate = Helper.GetCurrentDate();
-                    newLine = newLine.Replace(oldDate, newDate);
-                    Logger.Log("Updated HTML date from '" + oldDate + "' to '" + newDate + "'.", 1);
+                switch (state)
+                {
+                    case 0:
+                        if (line.Contains(ImportStartIdent)) state++;
+                        break;
+                    
+                    case 1:
+                        if (line.Contains(ImportEndIdent)) state++;
+                        break;
+                    
+                    case 2:
+                        if (!line.Contains("<label") || !line.Contains(key) || !line.Contains(endKey)) break;
+                        
+                        // update version
+                        var newLine = line.Replace(VersionController.OldVersion, VersionController.NewVersion);
 
-                    // apply
-                    this.devLines[i] = newLine;
-                    return;
+                        // update date
+                        var oldDateStart = line.Substring(line.IndexOf(key, StringComparison.Ordinal) + key.Length);
+                        var oldDate = oldDateStart.Substring(0, oldDateStart.IndexOf(endKey, StringComparison.Ordinal));
+                        var newDate = Helper.GetCurrentDate();
+                        newLine = newLine.Replace(oldDate, newDate);
+                        Logger.Log("Updated HTML date from '" + oldDate + "' to '" + newDate + "'.", 1);
+
+                        // apply
+                        this.devLines[i] = newLine;
+                        return;
+                    
+                    default:
+                        throw new Exception("unexpected state in html date update");
                 }
             }
 
-            throw new Exception();
+            throw new Exception("unexpected behaviour in html date update");
         }
 
         private List<string> GetReleaseImports()
@@ -102,15 +111,15 @@ namespace FilterBladeUpdateHelper
 
             foreach (var line in this.releaseLines)
             {
-                if (state == 0 && line.Contains(importStartIdent)) state++;
-                else if (state == 1 && line.Contains(importEndIdent)) return result;
+                if (state == 0 && line.Contains(ImportStartIdent)) state++;
+                else if (state == 1 && line.Contains(ImportEndIdent)) return result;
                 else if (state == 1)
                 {
                     result.Add(line);
                 }
             }
 
-            throw new Exception();
+            throw new Exception("error while saving release html imports");
         }
 
         private void MigrateDevIntoRelease()
@@ -123,21 +132,20 @@ namespace FilterBladeUpdateHelper
             var state = 0;
 
             // delete devImports
-            for (int i = 0; i < this.releaseLines.Count; i++)
+            for (var i = 0; i < this.releaseLines.Count; i++)
             {
                 var line = this.releaseLines[i];
 
-                if (line.Contains(importStartIdent))
+                if (line.Contains(ImportStartIdent))
                 {
                     state++;
                 }
 
-                else if (line.Contains(importEndIdent))
+                else if (line.Contains(ImportEndIdent))
                 {
                     // wrong imports deleted, now insert the right ones
                     this.releaseLines.InsertRange(i, this.releaseImports);
-                    state++;
-                    break;
+                    return;
                 }
 
                 else if (state == 1)
@@ -154,26 +162,27 @@ namespace FilterBladeUpdateHelper
             var state = 0;
             var key = "?v=" + VersionController.OldVersion.Replace(".", "");
             var newKey = "?v=" + VersionController.NewVersion.Replace(".", "");
+            var updatedLineCount = 0;
 
-            for (int i = 0; i < lineList.Count; i++)
+            for (var i = 0; i < lineList.Count; i++)
             {
                 var line = lineList[i];
 
                 switch (state)
                 {
-                    case 0 when line.Contains(importStartIdent):
+                    case 0 when line.Contains(ImportStartIdent):
                         state++;
                         break;
-                    case 1 when line.Contains(importEndIdent):
+                    
+                    case 1 when line.Contains(ImportEndIdent):
+                        if (updatedLineCount < 3) throw new Exception("error: did not successfully update version in HTML imports");
                         return;
+                    
                     case 1 when line.Contains(key):
-                    {
                         var newLine = line.Replace(key, newKey);
+                        updatedLineCount++;
                         lineList[i] = newLine;
                         break;
-                    }
-                    default:
-                        return;
                 }
             }
         }

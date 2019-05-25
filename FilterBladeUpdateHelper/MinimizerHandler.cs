@@ -12,12 +12,12 @@ namespace FilterBladeUpdateHelper
     /// </summary>
     public class MinimizerHandler
     {
-        private const string minimizeStartCommand = "npm run minification";
+        private const string MinimizeStartCommand = "npm run minification";
 
         public void Run()
         {
             Logger.Log("Minimizer Starting:", 1);
-            this.ExecuteCmdCommand(minimizeStartCommand);
+            this.ExecuteCmdCommand(MinimizeStartCommand);
         }
 
         public void ExecuteCmdCommand(string command)
@@ -26,7 +26,7 @@ namespace FilterBladeUpdateHelper
 
             var processInfo = new ProcessStartInfo("cmd.exe", fullCommand)
             {
-                WorkingDirectory = "C:/Users/Tobnac/WebstormProjects/fb",
+                WorkingDirectory = FilterBladeUpdateHelper.FbDirPath,
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardError = true,

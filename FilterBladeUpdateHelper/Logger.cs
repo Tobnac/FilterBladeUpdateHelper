@@ -11,9 +11,11 @@ namespace FilterBladeUpdateHelper
         /// <summary>
         /// ======== STATIC CONTENT =================
         /// </summary>
-
-        public static int LogTolerance = 0;
+        
+        public const int LogTolerance = 1;
         public static Logger Instance { get; set; }
+
+        private Logger() { }
 
         static Logger()
         {
