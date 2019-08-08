@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,16 +36,6 @@ namespace FilterBladeUpdateHelper
             }
 
             return $"{dt:MMMM} {dt.Day}{suffix}";
-        }
-
-        public static string GetFileNameFromPath(string path)
-        {
-            var index = path.LastIndexOf("/", StringComparison.Ordinal);
-            var otherIndex = path.LastIndexOf("\\", StringComparison.Ordinal);
-            if (otherIndex > index) index = otherIndex;
-            index++;
-
-            return path.Substring(index);
         }
     }
 }

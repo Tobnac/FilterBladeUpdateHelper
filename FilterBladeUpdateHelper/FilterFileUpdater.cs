@@ -71,10 +71,15 @@ namespace FilterBladeUpdateHelper
         private void InsertNewFilterFiles()
         {
             var counter = 0;
+            
+            // todo: prep for changelog file
 
             // normal style
             foreach (var file in Directory.GetFiles(NewFilterFolderPath))
-            {                
+            {
+                // we only care about filter files here. Ignore any other files like the occasional gitIgnore file
+                if (!file.EndsWith(".filter") || file.ToLower().Contains("seed")) continue;
+                
                 this.MoveFile(file, FilterDirPath + "/Normal");
                 counter++;
             }
@@ -83,11 +88,12 @@ namespace FilterBladeUpdateHelper
             foreach (var subFolder in Directory.GetDirectories(NewFilterFolderPath))
             {
                 var style = this.GetStyleName(subFolder);
+                if (style == null) continue;
 
                 foreach (var file in Directory.GetFiles(subFolder))
                 {
                     // skip sound placeholder files
-                    if (file.Contains(".mp3")) continue;
+                    if (!file.EndsWith(".filter")) continue;
 
                     this.MoveFile(file, FilterDirPath + "/" + style);
                     counter++;
@@ -99,7 +105,9 @@ namespace FilterBladeUpdateHelper
 
         private string GetStyleName(string subFolder)
         {
-            var capsLockName = subFolder.Substring(subFolder.IndexOf("(STYLE) ", StringComparison.Ordinal) + "(STYLE) ".Length);
+            var styleIndex = subFolder.IndexOf("(STYLE) ", StringComparison.Ordinal);
+            if (styleIndex == -1) return null;
+            var capsLockName = subFolder.Substring(styleIndex + "(STYLE) ".Length);
             var result = "";
             result += capsLockName[0].ToString().ToUpper();
             result += capsLockName.Substring(1).ToLower();
@@ -108,10 +116,13 @@ namespace FilterBladeUpdateHelper
 
         private void MoveFile(string original, string destination)
         {
-            destination += "/" + Helper.GetFileNameFromPath(original);
-            var a = File.Exists(original);
-            var b = File.Exists(destination);
-            if (!a || !b) throw new Exception();
+            if (!Directory.Exists(destination))
+            {
+                Logger.Log("Created new filter style folder: " + Path.GetFileName(destination) + ". Don't forget to add those files to git!", 3);
+                Directory.CreateDirectory(destination);
+            }
+            
+            destination += "/" + Path.GetFileName(original);
             File.Copy(original, destination, true);
         }
 
@@ -128,7 +139,7 @@ namespace FilterBladeUpdateHelper
             
             foreach (var archiveFile in archiveFiles)
             {
-                var archiveName = Helper.GetFileNameFromPath(archiveFile);
+                var archiveName = Path.GetFileName(archiveFile);
                 Console.WriteLine("Filter Archive found: " + archiveName + ". Created on: " + File.GetCreationTime(archiveFile));
                 Console.WriteLine("Use this one? Press <Enter> to confirm, write anything to select next archive.");
                 if (Console.ReadLine() != "") continue;
@@ -159,7 +170,7 @@ namespace FilterBladeUpdateHelper
 
             bool IsFilterArchive(string randomFileName)
             {
-                randomFileName = Helper.GetFileNameFromPath(randomFileName);
+                randomFileName = Path.GetFileName(randomFileName);
                 randomFileName = randomFileName.ToLower();
                 if (!randomFileName.EndsWith(".rar") && !randomFileName.EndsWith(".zip")) return false;
                 return NewFilterArchiveNames.Any(s => randomFileName.Contains(s.ToLower()));
