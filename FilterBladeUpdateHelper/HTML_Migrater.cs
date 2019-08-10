@@ -62,7 +62,7 @@ namespace FilterBladeUpdateHelper
         private void UpdateDateInDevHtml()
         {
             var state = 0;
-            var key = "Version " + VersionController.OldVersion + ",<br>";
+            var key = "Version " + VersionController.OldVersion + ", ";
             const string endKey = "</label>";
 
             for (var i = 0; i < this.devLines.Count; i++)
